@@ -62,6 +62,12 @@ jobs:
       # Для ручного запуска: suite управляется инпутом
       - name: Run tests (Manual trigger)
         if: github.event_name == 'workflow_dispatch'
+        env:
+          ENV: browserstack
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BS_APP: ${{ secrets.BS_APP }}   # если ты используешь app=bs://... из env
+          SUITE: ${{ inputs.suite }}
         run: |
           if [ "$SUITE" = "all" ]; then
             pytest -q --alluredir=artifacts/allure-results
