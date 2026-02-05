@@ -78,6 +78,9 @@ pytest_plugins = ["tests.steps.appiumapi_steps"]
 # 	•	подключение к эмулятору
 # 	•	получение объекта driver, через который мы управляем приложением
 def driver():
+    if os.getenv ("CI") == "true":
+        pytest.skip ("Mobile tests are skipped on CI (no Appium/emulator).")
+
     options = UiAutomator2Options ()
     options.platform_name = "Android"
     options.device_name = "emulator-5554"
