@@ -102,11 +102,11 @@ def driver(request):
     options = UiAutomator2Options ()
     options.platform_name = "Android"
 
-
-
     if env == "browserstack":
+        options.set_capability ("platformName", "Android")
+        options.set_capability ("appium:automationName", "UiAutomator2")
+        options.set_capability ("appium:app", "bs://7b0adfefe5d9ba755b2a21e3d1da38fa3436e079")
 
-        options.set_capability ("app", "bs://7b0adfefe5d9ba755b2a21e3d1da38fa3436e079")
         options.set_capability ("bstack:options", {
             "userName": os.getenv ("BROWSERSTACK_USERNAME"),
             "accessKey": os.getenv ("BROWSERSTACK_ACCESS_KEY"),
@@ -115,11 +115,9 @@ def driver(request):
             "projectName": "Python Appium Tests",
             "buildName": "GitHub Actions Build",
             "sessionName": "Mobile tests",
-
         })
-        # remote_url = "https://hub.browserstack.com/wd/hub"
-        remote_url = "https://hub-cloud.browserstack.com/wd/hub"
 
+        remote_url = "https://hub-cloud.browserstack.com/wd/hub"
 
     else:
         options.device_name = "emulator-5554"
@@ -127,6 +125,8 @@ def driver(request):
         options.app_activity = ".ApiDemos"
         remote_url = "http://127.0.0.1:4723"
 
+    assert os.getenv ("BROWSERSTACK_USERNAME"), "BROWSERSTACK_USERNAME is empty"
+    assert os.getenv ("BROWSERSTACK_ACCESS_KEY"), "BROWSERSTACK_ACCESS_KEY is empty"
 
     d = webdriver.Remote(remote_url, options=options)
     #   1.	Python отправляет HTTP-запрос на Appium Server
