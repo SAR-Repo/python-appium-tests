@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      BUILD_ID: ${{ github.run_number }}
+      BUILD_NUMBER: ${{ github.run_number }}
+      BUILD_ID: ${{ github.run_id }}
 
     steps:
       - name: Checkout repo
@@ -29,3 +30,10 @@ jobs:
       - name: Run tests
         run: |
           pytest -q -m "manual"
+
+      - name: Upload allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: artifacts/allure-results

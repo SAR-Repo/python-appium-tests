@@ -44,7 +44,8 @@ def pytest_configure(config):
         provider = "Local"
 
     os_ver = os.getenv ("BS_OS_VERSION", "Def. 13.0")
-    build = os.getenv ("GITHUB_RUN_NUMBER", "Def. local")
+    # build = os.getenv ("GITHUB_RUN_NUMBER", "Def. local")
+    build = os.getenv ("BUILD_NUMBER", "Def. local")
 
     env_file.write_text(
         f"Environment={env}\n"
