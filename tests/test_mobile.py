@@ -27,7 +27,3 @@ def test_navigation_accessibility_back_views(driver):
         page.click_by_accessibility (item)
         assert page.check_frame_label(item_name+'//'+item)
         page.go_back()
-
-@pytest.mark.manual
-def test_manual_examlpe_1():
-    assert 1+1==2
