@@ -26,3 +26,5 @@ jobs:
       - name: Run tests
         run: |
           pytest -q
+          pytest -q -m "manual"
+#          pytest -q -m "not mobile"
