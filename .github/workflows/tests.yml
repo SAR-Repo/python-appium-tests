@@ -37,3 +37,32 @@ jobs:
         with:
           name: allure-results
           path: artifacts/allure-results
+
+  report:
+    runs-on: ubuntu-latest
+    needs: tests
+    if: always()
+    environment:
+      name: github-pages
+    steps:
+      - name: Download allure results
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: artifacts/allure-results
+
+      - name: Install Allure CLI
+        run: |
+          npm i -g allure-commandline --silent
+
+      - name: Generate Allure report
+        run: |
+          allure generate artifacts/allure-results -o allure-report --clean
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: allure-report
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
