@@ -55,7 +55,7 @@ jobs:
       - name: Run tests (PR/Push default)
         if: github.event_name != 'workflow_dispatch'
         env:
-          ENV: local
+          ENV: browserstack
         run: |
           pytest -q -m "manual or bdd" --alluredir=artifacts/allure-results
 
