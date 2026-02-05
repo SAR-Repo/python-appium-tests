@@ -69,6 +69,15 @@ jobs:
             pytest -q -m "$SUITE" --alluredir=artifacts/allure-results
           fi
 
+      - name: Run mobile tests
+        env:
+          ENV: browserstack
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BS_APP: ${{ secrets.BS_APP }}   # если ты так назвал app id
+        run: |
+          pytest -q -m "mobile or bdd" --alluredir=artifacts/allure-results
+
       - name: Upload allure results
         if: always()
         uses: actions/upload-artifact@v4
