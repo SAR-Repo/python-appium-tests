@@ -4,6 +4,18 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "Which suite to run?"
+        type: choice
+        options: [ manual, bdd, mobile, all ]
+        default: manual
+      env:
+        description: "Execution environment"
+        type: choice
+        options: [ local, browserstack ]
+        default: local
 
 permissions:
   contents: read
@@ -17,9 +29,13 @@ concurrency:
 jobs:
   tests:
     runs-on: ubuntu-latest
+
     env:
       BUILD_NUMBER: ${{ github.run_number }}
       BUILD_ID: ${{ github.run_id }}
+      # ENV/SUITE берём из workflow_dispatch, иначе задаём дефолты для push/PR
+      ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.env || 'local' }}
+      SUITE: ${{ github.event_name == 'workflow_dispatch' && inputs.suite || 'manual' }}
 
     steps:
       - name: Checkout repo
@@ -35,9 +51,38 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run tests
+      # Для PR/Push: прогоняем быстро (manual+bdd). Mobile — только вручную.
+      - name: Run tests (PR/Push default)
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          ENV: browserstack
         run: |
-          pytest -q -m "manual" --alluredir=artifacts/allure-results
+          pytest -q -m "manual"
+
+      # Для ручного запуска: suite управляется инпутом
+      - name: Run tests (Manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          ENV: browserstack
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BS_APP: ${{ secrets.BS_APP }}   # если ты используешь app=bs://... из env
+          SUITE: ${{ inputs.suite }}
+        run: |
+          if [ "$SUITE" = "all" ]; then
+            pytest -q --alluredir=artifacts/allure-results
+          else
+            pytest -q -m "$SUITE" --alluredir=artifacts/allure-results
+          fi
+
+      - name: Run mobile tests
+        env:
+          ENV: browserstack
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          BS_APP: ${{ secrets.BS_APP }}   # если ты так назвал app id
+        run: |
+          pytest -q -m "mobile or bdd" --alluredir=artifacts/allure-results
 
       - name: Upload allure results
         if: always()
@@ -49,7 +94,7 @@ jobs:
   report:
     runs-on: ubuntu-latest
     needs: tests
-    # Pages деплоим только из main
+    # Pages деплоим только из main (и для push, и для ручного run на main)
     if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
@@ -80,3 +125,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Add report link to summary
+        run: |
+          echo "### Allure report" >> $GITHUB_STEP_SUMMARY
+          echo "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY

@@ -39,9 +39,11 @@ def pytest_configure(config):
     if env == "browserstack":
         device = os.getenv ("BS_DEVICE", "Def. Google Pixel 7")
         provider = "BrowserStack"
+        remote_url = "https://hub.browserstack.com/wd/hub"
     else:
         device = "Android Emulator"
         provider = "Local"
+        remote_url = "http://127.0.0.1:4723"
 
     os_ver = os.getenv ("BS_OS_VERSION", "Def. 13.0")
     # build = os.getenv ("GITHUB_RUN_NUMBER", "Def. local")
@@ -128,7 +130,7 @@ def driver(request):
 
     d = webdriver.Remote(remote_url, options=options)
     #   1.	Python отправляет HTTP-запрос на Appium Server
-    # 	2.	Appium Server:
+    # 	2.	Appium Server:пше ф
     # 	•	читает options
     # 	•	подключается к эмулятору через ADB
     # 	•	запускает приложение
