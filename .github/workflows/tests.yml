@@ -57,7 +57,7 @@ jobs:
         env:
           ENV: browserstack
         run: |
-          pytest -q -m "manual or bdd" --alluredir=artifacts/allure-results
+          pytest -q -m "manual"
 
       # Для ручного запуска: suite управляется инпутом
       - name: Run tests (Manual trigger)
