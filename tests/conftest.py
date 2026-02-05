@@ -117,7 +117,8 @@ def driver(request):
             "sessionName": "Mobile tests",
 
         })
-        remote_url = "https://hub.browserstack.com/wd/hub"
+        # remote_url = "https://hub.browserstack.com/wd/hub"
+        remote_url = "https://hub-cloud.browserstack.com/wd/hub"
 
 
     else:
