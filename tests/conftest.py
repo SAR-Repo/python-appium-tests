@@ -7,6 +7,7 @@ import allure
 PROJECT_ROOT = Path(__file__).parent
 SCREENSHOTS_DIR = PROJECT_ROOT / "artifacts" / "screenshots"
 
+pytest_plugins = ["tests.steps.appiumapi_steps"]
 
 def pytest_configure(config):
     # Это Хук
@@ -33,14 +34,27 @@ def pytest_configure(config):
     env_file = Path(allure_dir) / "environment.properties"
     env_file.parent.mkdir(parents=True, exist_ok=True)
 
-    env = os.getenv("ENV", "local")
+    env = os.getenv("ENV", "Def. local")
+
+    if env == "browserstack":
+        device = os.getenv ("BS_DEVICE", "Def. Google Pixel 7")
+        provider = "BrowserStack"
+    else:
+        device = "Android Emulator"
+        provider = "Local"
+
+    os_ver = os.getenv ("BS_OS_VERSION", "Def. 13.0")
+    build = os.getenv ("GITHUB_RUN_NUMBER", "Def. local")
 
     env_file.write_text(
         f"Environment={env}\n"
         "Platform=Android\n"
-        "Device=Emulator\n"
+        f"buildName={build}\n"
+        f"Device={device}\n"
+        f"osVersion={os_ver}\n"
         "App=ApiDemos\n"
         "Framework=Python+Appium\n"
+        f"Provider={provider}\n"
     )
 
 #нужен для работы с фикстурами
@@ -67,7 +81,7 @@ from appium.options.android import UiAutomator2Options
 # 	•	каким драйвером Android (UiAutomator2)
 # Раньше это делали через словарь desired_capabilities, сейчас — через объект options (современно и правильно).
 
-pytest_plugins = ["tests.steps.appiumapi_steps"]
+
 
 @pytest.fixture
 # Это декоратор pytest
@@ -77,21 +91,39 @@ pytest_plugins = ["tests.steps.appiumapi_steps"]
 # 	•	запуск приложения
 # 	•	подключение к эмулятору
 # 	•	получение объекта driver, через который мы управляем приложением
-def driver():
-    if os.getenv ("CI") == "true":
-        pytest.skip ("Mobile tests are skipped on CI (no Appium/emulator).")
+def driver(request):
+    # if os.getenv ("CI") == "true":
+    #     pytest.skip ("Mobile tests are skipped on CI (no Appium/emulator).")
+    env = os.getenv ("ENV", "local")
 
     options = UiAutomator2Options ()
     options.platform_name = "Android"
-    options.device_name = "emulator-5554"
 
-    options.app_package = "io.appium.android.apis"
-    options.app_activity = ".ApiDemos"
 
-    # options.app_package = "com.android.settings"
-    # options.app_activity = ".Settings"
 
-    d = webdriver.Remote("http://127.0.0.1:4723", options=options)
+    if env == "browserstack":
+
+        options.set_capability ("app", "bs://7b0adfefe5d9ba755b2a21e3d1da38fa3436e079")
+        options.set_capability ("bstack:options", {
+            "userName": os.getenv ("BROWSERSTACK_USERNAME"),
+            "accessKey": os.getenv ("BROWSERSTACK_ACCESS_KEY"),
+            "deviceName": "Google Pixel 7",
+            "osVersion": "13.0",
+            "projectName": "Python Appium Tests",
+            "buildName": "GitHub Actions Build",
+            "sessionName": "Mobile tests",
+
+        })
+        remote_url = "https://hub.browserstack.com/wd/hub"
+
+    else:
+        options.device_name = "emulator-5554"
+        options.app_package = "io.appium.android.apis"
+        options.app_activity = ".ApiDemos"
+        remote_url = "http://127.0.0.1:4723"
+
+
+    d = webdriver.Remote(remote_url, options=options)
     #   1.	Python отправляет HTTP-запрос на Appium Server
     # 	2.	Appium Server:
     # 	•	читает options
@@ -100,6 +132,15 @@ def driver():
     # 	•	создаёт Appium session
     # 	3.	Appium возвращает sessionId
     # 	4.	Python получает объект driver
+    # сохраним driver в item, чтобы hooks могли достать
+    request.node._driver = d
+    # ВАЖНО: сохраняем driver и session url для сылок при падении теста
+    # если BrowserStack — положим session url в env/аттач
+    if env == "browserstack":
+        session_id = d.session_id
+        bs_url = f"https://app-automate.browserstack.com/dashboard/v2/sessions/{session_id}"
+        request.node._bs_session_url = bs_url
+
     yield d
     d.quit()
 
@@ -132,6 +173,11 @@ def pytest_runtest_makereport(item, call):
 
     if rep.failed and rep.when in ("setup", "call"):
         driver = item.funcargs.get ("driver") or getattr (item, "_driver", None)
+
+        bs_url = getattr (item, "_bs_session_url", None)
+        if bs_url:
+            allure.attach (bs_url, name = "BrowserStack session", attachment_type = allure.attachment_type.URI_LIST)
+
         #Тут ищем Appium driver, который был передан в тест.
         # Что есть item? item — это объект pytest для конкретного теста
         # item.funcargs -Словарь всех фикстур теста:
