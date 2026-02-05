@@ -2,7 +2,7 @@ from pages.appium_android_apis_page import AppiumApiPage
 import pytest
 import allure
 
-@pytest.mark.manual
+@pytest.mark.mobile
 @pytest.mark.smoke
 def test_appium_api_opened(driver):
     # driver.activate_app ("com.android.settings")
@@ -10,7 +10,8 @@ def test_appium_api_opened(driver):
     assert driver.current_package == "io.appium.android.apis"
 
 
-@pytest.mark.manual
+
+@pytest.mark.mobile
 @allure.title("Navigate through Accessibility and Views")
 @allure.severity(allure.severity_level.CRITICAL)
 @allure.feature("Navigation")
@@ -27,8 +28,6 @@ def test_navigation_accessibility_back_views(driver):
         assert page.check_frame_label(item_name+'//'+item)
         page.go_back()
 
-
-
-    # page.go_back()
-    # page.click_by_accessibility("Views")
-    # page.go_back ()
+@pytest.mark.manual
+def test_manual_examlpe_1():
+    assert 1+1==2

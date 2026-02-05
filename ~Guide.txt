@@ -7,45 +7,60 @@ Android SDK
 	source ~/.zshrc
 
 Appium
-brew install node
-node -v
-npm -v
+    brew install node
+    node -v
+    npm -v
 
-npm i -g appium
-appium driver install uiautomator2
-appium
-Appium должен слушать http://127.0.0.1:4723.
+    npm i -g appium
+    appium driver install uiautomator2
+    appium
+    Appium должен слушать http://127.0.0.1:4723.
 
-curl -s http://127.0.0.1:4723/status
+    curl -s http://127.0.0.1:4723/status
 
 
 PyCharm
-pip install appium-python-client pytest
+    pip install appium-python-client pytest
 
-PyCharm terminal:
-adb devices
+    PyCharm terminal:
+    adb devices
 
-python test_appium_smoke.py
+    python test_appium_smoke.py
 
-pip install pytest-bdd
+    pip install pytest-bdd
 
-check internet connection  adb shell ping -c 3 google.com
+    check internet connection  adb shell ping -c 3 google.com
 
-как узнать текущее активное приложение на телефоне
-adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp"
+    как узнать текущее активное приложение на телефоне
+    adb shell dumpsys window | grep -E "mCurrentFocus|mFocusedApp"
 
-pip install allure-pytest
-brew install allure
+Allure
+    pip install allure-pytest
+    brew install allure
 
-RUN with Allur Serv:
-pytest
-allure serve artifacts/allure-results
+    RUN with Allur Serv:
+    pytest
+    allure serve artifacts/allure-results
 
 
 Git
-git init
-git add .
-git commit -m "init: tests + github actions"
-git branch -M main
-git remote add origin https://github.com/<твой-логин>/<имя-репо>.git
-git push -u origin main
+    git init
+    git add .
+    git commit -m "init: tests + github actions"
+    git branch -M main
+    git remote add origin https://github.com/<твой-логин>/<имя-репо>.git
+    git remote add origin https://github.com/SAR-Repo/python-appium-tests.git
+
+    git push -u origin main
+
+    additional
+    git status
+    git config --global credential.helper osxkeychain -> Добавить токен в ключницу
+
+    git credential-osxkeychain erase -> Удалить ключи из ключницы
+    host=github.com
+    protocol=https
+
+
+
+
