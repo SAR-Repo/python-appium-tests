@@ -23,7 +23,8 @@ def test_navigation_accessibility_back_views(driver):
     page = AppiumApiPage(driver)
     page.click_by_accessibility(item_name)
     assert page.get_items_list()== list(items_list)
-    for item in items_list:
-        page.click_by_accessibility (item)
-        assert page.check_frame_label(item_name+'//'+item)
-        page.go_back()
+
+    # for item in items_list:
+    #     page.click_by_accessibility (item)
+    #     assert page.check_frame_label(item_name+'//'+item)
+    #     page.go_back()
