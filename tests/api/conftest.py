@@ -1,0 +1,1 @@
+# API-фикстуры (requests, auth и т.д.)

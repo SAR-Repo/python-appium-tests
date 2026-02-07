@@ -1,0 +1,55 @@
+1) Архитектура в проекте
+tests/
+  mobile/         # Appium tests
+  web/            # Playwright tests
+features/         # BDD (если нужно для mobile/web)
+pages/
+  mobile/
+  web/
+conftest.py       # общие хуки Allure, env, скрины
+pytest.ini
+requirements.txt
+.github/workflows/tests.yml
+
+2) Маркеры (чтобы запускать сеты)
+	•	@pytest.mark.mobile — Appium (BrowserStack/локально)
+	•	@pytest.mark.web — Playwright
+	•	@pytest.mark.manual — юнит/учебные
+	•	@pytest.mark.bdd — BDD сценарии (если есть и там, и там)
+
+Тогда ты можешь запускать так:
+	•	локально web: pytest -m web
+	•	локально mobile: ENV=local pytest -m mobile
+	•	GitHub Actions web: pytest -m web
+	•	GitHub Actions mobile: ENV=browserstack pytest -m "mobile or bdd"
+	•	Allure:
+pytest
+allure serve artifacts/allure-results
+
+browserstack + mobile + allure report:
+ENV=browserstack BROWSERSTACK_USERNAME="*" BROWSERSTACK_ACCESS_KEY="*" pytest -q -m "mobile"
+allure serve artifacts/allure-results
+
+
+3) Allure вместе
+
+Allure “склеивается” просто: все тесты пишут результаты в один и тот же --alluredir (например, artifacts/allure-results).
+
+Важно:
+	•	если ты запускаешь два прогона (web + mobile) в разных jobs, то в конце ты:
+	1.	скачиваешь оба артефакта,
+	2.	складываешь их в одну папку allure-results,
+	3.	генеришь один отчёт и деплоишь на Pages.
+
+4) GitHub Actions: как лучше
+
+Обычно делают 2 job’а:
+	•	web (всегда на push/PR) — Playwright в GitHub runner
+	•	mobile (только вручную workflow_dispatch) — BrowserStack
+	•	report — собирает Allure из того, что реально запускалось
+
+Т.е. web будет “всегда зелёный и быстрый”, а mobile — по кнопке, когда надо.
+
+5) BrowserStack не мешает Playwright
+
+Playwright не требует BrowserStack: он отлично бегает в GitHub Actions сам по себе (у GitHub runner есть интернет). Главное — чтобы сайт был доступен (публичный или тестовый стенд). Для локалхоста из GitHub runner — нельзя, нужен публичный URL или туннель.
