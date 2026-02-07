@@ -7,8 +7,22 @@ import allure
 PROJECT_ROOT = Path(__file__).parent
 SCREENSHOTS_DIR = PROJECT_ROOT / "artifacts" / "screenshots"
 
-pytest_plugins = ["tests.steps.appiumapi_steps"]
+pytest_plugins = ["tests.bdd.steps.bdd_steps"]
+# tests/bdd/steps/bdd_steps.py
 
+def pytest_bdd_before_scenario(request, feature, scenario):
+    # scenario.tags — список тегов без "@"
+    tags = set(scenario.tags)
+
+    if "mobile" in tags:
+        allure.dynamic.parent_suite("Mobile")
+    if "web" in tags:
+        allure.dynamic.parent_suite("Web")
+    if "api" in tags:
+        allure.dynamic.parent_suite("API")
+
+    if "bdd" in tags:
+        allure.dynamic.suite("BDD")
 def pytest_configure(config):
     # Это Хук
     # Он вызывается:
@@ -125,8 +139,8 @@ def driver(request):
         options.app_activity = ".ApiDemos"
         remote_url = "http://127.0.0.1:4723"
 
-    assert os.getenv ("BROWSERSTACK_USERNAME"), "BROWSERSTACK_USERNAME is empty"
-    assert os.getenv ("BROWSERSTACK_ACCESS_KEY"), "BROWSERSTACK_ACCESS_KEY is empty"
+    # assert os.getenv ("BROWSERSTACK_USERNAME"), "BROWSERSTACK_USERNAME is empty"
+    # assert os.getenv ("BROWSERSTACK_ACCESS_KEY"), "BROWSERSTACK_ACCESS_KEY is empty"
 
     d = webdriver.Remote(remote_url, options=options)
     #   1.	Python отправляет HTTP-запрос на Appium Server

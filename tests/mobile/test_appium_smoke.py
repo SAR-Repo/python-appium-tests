@@ -1,7 +1,10 @@
 from appium import webdriver
 from appium.options.android import UiAutomator2Options
+import allure
 
-
+@allure.parent_suite("Mobile")
+@allure.suite("Manual")
+@allure.sub_suite("3")
 def test_open_settings():
     options = UiAutomator2Options()
     options.platform_name = "Android"
